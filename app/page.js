@@ -1,5 +1,5 @@
 import Link from "next/link";
-import page from "./week_2/page";
+import page from "./week-2/page";
 export default function Home() {
   return(
   <div>

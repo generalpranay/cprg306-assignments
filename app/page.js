@@ -5,4 +5,4 @@ export default function Home() {
   <div>
   <p><Link href= "/week_2">go to week 2 </Link></p>
   </div>);
-}
+}//main page

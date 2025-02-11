@@ -21,7 +21,7 @@ export default function Counter(){
         }
     };
     return(
-        <div class="mx-auto" >
+        <div>
              <div class="flex-1 bg-blue-100 mx-auto max-w-sm p-4 rounded-lg justify-center align items center ">
             <p class=" font-bold text-center text-black">Quantity : {quantity}</p>
             </div>

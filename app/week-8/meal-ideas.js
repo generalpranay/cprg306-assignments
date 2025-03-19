@@ -2,21 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-// Function to fetch meal ideas based on the ingredient
 const fetchMealIdeas = async (ingredient) => {
   try {
     if (!ingredient) return [];
-
-    console.log("Fetching meals for:", ingredient); // Debugging log
-
     const response = await fetch(
       `https://www.themealdb.com/api/json/v1/1/filter.php?i=${ingredient}`
     );
-
     const data = await response.json();
-
-    console.log("API Response:", data); // Debugging log
-
     return data.meals || [];
   } catch (error) {
     console.error("Error fetching meal ideas:", error);
@@ -37,33 +29,43 @@ const fetchRecipe = async (id) => {
   }
 };
 
-// MealIdeas component definition
 const MealIdeas = ({ ingredient, onRecipeSelect }) => {
-  // State to store fetched meals, initially an empty array
   const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
+  const [selectedMealId, setSelectedMealId] = useState(null);
+  const [recipe, setRecipe] = useState(null);
 
-  // Function to load meal ideas based on the ingredient
   const loadMealIdeas = async () => {
     if (!ingredient) {
-      setMeals([]); // Clear meals if ingredient is not provided
+      setMeals([]);
+      setSelectedMealId(null);
+      setRecipe(null);
       return;
     }
 
-    setLoading(true); // Set loading to true when starting the fetch
+    setLoading(true);
     const mealIdeas = await fetchMealIdeas(ingredient);
-    setMeals(mealIdeas); // Update the meals state with fetched data
-    setLoading(false); // Set loading to false after the fetch is complete
+    setMeals(mealIdeas);
+    setLoading(false);
+    setSelectedMealId(null);
+    setRecipe(null);
   };
 
   const handleMealClick = async (id) => {
-    const recipe = await fetchRecipe(id);
-    if (recipe) {
-      onRecipeSelect(`https://www.themealdb.com/meal/${id}`);
+    if (selectedMealId === id) {
+      setSelectedMealId(null);
+      setRecipe(null);
+      onRecipeSelect(null);
+    } else {
+      setSelectedMealId(id);
+      const fetchedRecipe = await fetchRecipe(id);
+      setRecipe(fetchedRecipe);
+      if (fetchedRecipe) {
+        onRecipeSelect(`https://www.themealdb.com/meal/${id}`);
+      }
     }
   };
 
-  // Using useEffect to call loadMealIdeas whenever the ingredient changes
   useEffect(() => {
     loadMealIdeas();
   }, [ingredient]);
@@ -74,13 +76,37 @@ const MealIdeas = ({ ingredient, onRecipeSelect }) => {
       {loading ? (
         <p>Loading meal ideas...</p>
       ) : meals.length > 0 ? (
-        <ul style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+        <ul style={{ listStyleType: "none", padding: 0 }}>
           {meals.map((meal) => (
-            <li key={meal.idMeal} style={{ border: "1px solid #ddd", padding: "10px", textAlign: "center", width: "150px" }}>
-              <button onClick={() => handleMealClick(meal.idMeal)} style={{ border: "none", background: "none", padding: 0, cursor: "pointer" }}>
-                <img src={meal.strMealThumb} alt={meal.strMeal} style={{ width: "100%", marginBottom: "5px" }} />
-                <div style={{ fontSize: "0.9em" }}>{meal.strMeal}</div>
+            <li key={meal.idMeal} style={{ marginBottom: "10px" }}>
+              <button
+                onClick={() => handleMealClick(meal.idMeal)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  border: "1px solid #e0e0e0",
+                  padding: "8px",
+                  width: "250px",
+                  textAlign: "left",
+                  background: selectedMealId === meal.idMeal ? "#f5f5f5" : "white",
+                  cursor: "pointer",
+                  borderRadius: "5px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <img
+                  src={meal.strMealThumb}
+                  alt={meal.strMeal}
+                  style={{ width: "50px", height: "50px", marginRight: "12px", borderRadius: "5px" }}
+                />
+                <div style={{ fontSize: "0.9em", color: "#333" }}>{meal.strMeal}</div>
               </button>
+              {selectedMealId === meal.idMeal && recipe && (
+                <div style={{ padding: "8px", backgroundColor: "#f9f9f9", borderRadius: "5px", marginTop: "5px", border: "1px solid #e0e0e0", fontSize: '0.8em', color: '#222' }}>
+                  <h3 style={{fontSize: '1em', marginBottom: '5px', color: '#222'}}>{recipe.strMeal}</h3>
+                  <p style={{color: '#222'}}>{recipe.strInstructions}</p>
+                </div>
+              )}
             </li>
           ))}
         </ul>
